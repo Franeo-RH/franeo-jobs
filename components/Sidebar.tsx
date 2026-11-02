@@ -10,22 +10,8 @@ type Item = { href: string; label: string; badge?: number; aussi?: string[] };
 function rubrique(pathname: string, role: Role): { titre: string; items: Item[] } | null {
   const dans = (...mots: string[]) => mots.some((m) => pathname.includes(m));
 
-  if (role === "PUBLIC") {
-    return { titre: "Franeo Jobs", items: [
-      { href: "/offres", label: "💼 Offres d'emploi" },
-      { href: "/candidature-spontanee", label: "📄 Déposer mon CV" },
-      { href: "/espace-candidat", label: "👤 Mon espace candidat" },
-      { href: "/confidentialite", label: "🛡️ Données personnelles" },
-    ] };
-  }
-  if (role === "CANDIDAT") {
-    return { titre: "Mon espace", items: [
-      { href: "/candidat", label: "📍 Mon suivi" },
-      { href: "/candidat/profil", label: "👤 Mes informations" },
-      { href: "/offres", label: "💼 Offres d'emploi" },
-      { href: "/candidature-spontanee", label: "📄 Déposer mon CV" },
-    ] };
-  }
+  // Pages publiques et espace candidat : pas de barre latérale, tout est dans la barre du haut
+  if (role === "PUBLIC" || role === "CANDIDAT") return null;
 
   if (role === "ADMIN") {
     if (dans("/admin/clients")) {
@@ -70,6 +56,7 @@ function rubrique(pathname: string, role: Role): { titre: string; items: Item[] 
         { href: "/admin/parametres/demandes", label: "🆕 Demandes d'accès" },
         { href: "/admin/parametres/equipe", label: "👥 Équipe FRANEO RH" },
         { href: "/admin/parametres/rgpd", label: "🛡️ RGPD" },
+        { href: "/admin/parametres/stockage", label: "🗄️ Stockage des CV" },
         { href: "/admin/parametres/demo", label: "🧪 Démo" },
       ] };
     }

@@ -211,3 +211,19 @@ export async function changerMonMotDePasse(fd: FormData) {
   await prisma.utilisateur.update({ where: { id: s.id }, data: { motDePasse: await bcrypt.hash(nouveau, 10) } });
   redirect("/admin/parametres?ok=1");
 }
+
+// ───────── Stockage des CV (Cloudflare R2) ─────────
+export async function verifierR2() {
+  await exigerAdmin();
+  const { testerR2 } = await import("@/lib/stockage");
+  const r = await testerR2();
+  redirect(r === "OK" ? "/admin/parametres/stockage?ok=Connexion à Cloudflare R2 réussie ✅" : vers("/admin/parametres/stockage", r));
+}
+
+export async function migrerCvVersR2() {
+  await exigerAdmin();
+  const { migrerVersR2 } = await import("@/lib/stockage");
+  const { deplaces, restants } = await migrerVersR2();
+  revalidatePath("/admin/parametres/stockage");
+  redirect(`/admin/parametres/stockage?ok=${encodeURIComponent(`${deplaces} CV déplacé(s) vers R2. ${restants ? `Il en reste ${restants} : relancez.` : "Terminé ✅"}`)}`);
+}

@@ -47,3 +47,34 @@ export async function supprimerAncienCv(candidatId: string) {
     console.error("CV non supprimé du stockage :", e);
   }
 }
+
+/** Déplace vers R2 les CV encore rangés dans la base (par lots, pour ne pas dépasser le temps d'exécution) */
+export async function migrerVersR2(lot = 40): Promise<{ deplaces: number; restants: number }> {
+  if (!r2Actif()) return { deplaces: 0, restants: await prisma.candidat.count({ where: { cvData: { not: null } } }) };
+  const liste = await prisma.candidat.findMany({ where: { cvData: { not: null }, cvCle: null }, select: { id: true, cvNom: true, cvType: true, cvData: true }, take: lot });
+  let deplaces = 0;
+  for (const c of liste) {
+    try {
+      const champs = await donneesCv({ nom: c.cvNom || "cv.pdf", type: c.cvType || "application/pdf", data: new Uint8Array(c.cvData!) });
+      await prisma.candidat.update({ where: { id: c.id }, data: { cvCle: champs.cvCle, cvData: null } });
+      deplaces++;
+    } catch (e) {
+      console.error("Migration du CV impossible pour", c.id, e);
+    }
+  }
+  const restants = await prisma.candidat.count({ where: { cvData: { not: null }, cvCle: null } });
+  return { deplaces, restants };
+}
+
+/** Vérifie que R2 répond (écriture puis suppression d'un petit fichier test) */
+export async function testerR2(): Promise<string> {
+  if (!r2Actif()) return "R2 n'est pas configuré : il manque une ou plusieurs variables R2_….";
+  try {
+    const cle = `test/${randomUUID()}.txt`;
+    await r2().send(new PutObjectCommand({ Bucket: BUCKET, Key: cle, Body: "Franeo Jobs", ContentType: "text/plain" }));
+    await r2().send(new DeleteObjectCommand({ Bucket: BUCKET, Key: cle }));
+    return "OK";
+  } catch (e) {
+    return `Échec : ${e instanceof Error ? e.message : String(e)}`;
+  }
+}

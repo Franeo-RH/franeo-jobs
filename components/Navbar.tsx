@@ -103,6 +103,7 @@ export default function Navbar({ role, prenom }: NavbarProps) {
       {role === "CLIENT" && <Link href="/client/profil" className="fr-nav-petit">🔒 Mot de passe</Link>}
       {(role === "ADMIN" || role === "CLIENT") && <Link href="/offres" className="fr-nav-petit">💼 Voir les offres publiques</Link>}
       {role === "PUBLIC" && <Link href="/espace-candidat" className="fr-nav-petit">🔑 Se connecter</Link>}
+      <Link href="/installer" className="fr-nav-petit">📲 Installer l&apos;app</Link>
       <a href={SITE_URL} target="_blank" rel="noopener noreferrer" className="fr-nav-petit">🌐 Site Franeo ↗</a>
       <BoutonTheme className="fr-nav-theme" />
       {role !== "PUBLIC" && (
