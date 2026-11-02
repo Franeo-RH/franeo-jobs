@@ -1,0 +1,324 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────  Comptes  ─────────────────────────────
+
+model Utilisateur {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  motDePasse   String
+  prenom       String
+  nom          String       @default("")
+  role         String       @default("CLIENT") // ADMIN | CLIENT | CANDIDAT
+  actif        Boolean      @default(true)
+  entrepriseId String?
+  entreprise   Entreprise?  @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  candidatId   String?      @unique // compte d'un candidat (espace candidat)
+  candidat     Candidat?    @relation(fields: [candidatId], references: [id], onDelete: Cascade)
+  tokens       TokenReset[]
+  createdAt    DateTime     @default(now())
+
+  @@index([entrepriseId])
+}
+
+model TokenReset {
+  id            String      @id @default(cuid())
+  token         String      @unique
+  utilisateurId String
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  expireAt      DateTime
+  createdAt     DateTime    @default(now())
+}
+
+// ─────────────────────────────  Clients et missions  ─────────────────────────────
+
+model Entreprise {
+  id              String         @id @default(cuid())
+  nom             String
+  secteur         String?
+  contactNom      String?
+  contactPoste    String?
+  email           String?
+  telephone       String?
+  rue             String?
+  codePostal      String?
+  ville           String?
+  siteWeb         String?
+  siret           String?
+  tauxHonoraires  Float          @default(20) // % du salaire annuel brut
+  garantieMois    Int            @default(3)
+  notes           String?
+  actif           Boolean        @default(true)
+  demo            Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+
+  utilisateurs    Utilisateur[]
+  missions        Mission[]
+  presentations   Presentation[]
+  factures        Facture[]
+}
+
+model Mission {
+  id            String         @id @default(cuid())
+  reference     String         @unique
+  entrepriseId  String
+  entreprise    Entreprise     @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  poste         String
+  categorie     String         @default("Autres")
+  nbPostes      Int            @default(1)
+  contrat       String         @default("CDI")
+  lieu          String
+  salaireMin    Int?
+  salaireMax    Int?
+  competences   String[]
+  description   String?
+  statut        String         @default("OUVERTE") // BROUILLON | OUVERTE | EN_SOURCING | EN_PRESENTATION | POURVUE | CLOTUREE
+  consultant    String?
+  dateCloture   DateTime?
+  createdAt     DateTime       @default(now())
+
+  offres        Offre[]
+  candidatures  Candidature[]
+  presentations Presentation[]
+  factures      Facture[]
+
+  @@index([entrepriseId])
+  @@index([statut])
+}
+
+model Offre {
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  missionId     String?
+  mission       Mission?      @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  titre         String
+  categorie     String        @default("Autres")
+  contrat       String        @default("CDI")
+  lieu          String
+  salaire       String?
+  description   String
+  taches        String?
+  profil        String?
+  competences   String[]
+  avantages     String?
+  questionnaire String        @default("auto") // auto | commercial | paie | compta | rh | tech | aucun
+  statut        String        @default("BROUILLON") // BROUILLON | PUBLIEE | SUSPENDUE | POURVUE | ARCHIVEE
+  diffusion     String[]
+  seuilTest     Int           @default(0) // score minimal conseillé au questionnaire (0 = pas de seuil)
+  publieeAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  candidatures  Candidature[]
+
+  @@index([statut])
+}
+
+// ─────────────────────────────  Candidats  ─────────────────────────────
+
+model Candidat {
+  id              String        @id @default(cuid())
+  prenom          String
+  nom             String
+  email           String?       @unique
+  telephone       String?
+  ville           String?
+  linkedin        String?
+  metier          String        @default("Autres") // classement du vivier
+  poste           String?       // intitulé du poste recherché
+  competences     String[]
+  experience      String?
+  niveau          String?
+  disponibilite   String?
+  mobilite        String?
+  teletravail     String?
+  salaireSouhaite Int?          // brut annuel en €
+  preavis         String?
+  statut          String        @default("NOUVEAU")
+  source          String        @default("Site Franeo Jobs")
+  dernierContact  DateTime      @default(now())
+  cvNom           String?
+  cvType          String?
+  cvData          Bytes?        // CV rangé dans la base (si Cloudflare R2 n'est pas configuré)
+  cvCle           String?       // CV rangé dans Cloudflare R2
+  scoreTest       Int?
+  alertesMetiers  String[]      // alertes e-mail : nouvelles offres de ces métiers
+  consentementAt  DateTime?
+  demo            Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  candidatures    Candidature[]
+  notes           Note[]
+  entretiens      Entretien[]
+  presentations   Presentation[]
+  relances        Relance[]
+  factures        Facture[]
+  compte          Utilisateur?
+
+  @@index([metier])
+  @@index([statut])
+}
+
+model Candidature {
+  id         String    @id @default(cuid())
+  candidatId String
+  candidat   Candidat  @relation(fields: [candidatId], references: [id], onDelete: Cascade)
+  offreId    String?
+  offre      Offre?    @relation(fields: [offreId], references: [id], onDelete: SetNull)
+  missionId  String?
+  mission    Mission?  @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  etape      String    @default("NOUVEAU") // NOUVEAU | PREQUALIFICATION | ENTRETIEN_FRANEO | PRESENTABLE | PRESENTE | ENTRETIEN_CLIENT | PROPOSITION | EMBAUCHE | REFUSE
+  source     String?
+  questionnaire String?
+  reponses   Json?
+  axes       Json?
+  scoreTest  Int?
+  aRelire    Boolean   @default(false)
+  dureeTestSec Int?    // temps passé sur le questionnaire
+  noteLibre  Int?      // note du consultant sur la réponse libre (0 à 5)
+  commentaireTest String?
+  retireeAt  DateTime? // le candidat a retiré sa candidature
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  entretiens Entretien[]
+
+  @@index([missionId, etape])
+  @@index([candidatId])
+}
+
+model Entretien {
+  id            String       @id @default(cuid())
+  candidatId    String
+  candidat      Candidat     @relation(fields: [candidatId], references: [id], onDelete: Cascade)
+  candidatureId String?
+  candidature   Candidature? @relation(fields: [candidatureId], references: [id], onDelete: SetNull)
+  date          DateTime     @default(now())
+  consultant    String
+  dureeMin      Int?
+  commentaires  String?
+  competences   Int          @default(0)
+  experience    Int          @default(0)
+  motivation    Int          @default(0)
+  communication Int          @default(0)
+  adequation    Int          @default(0)
+  score         Int          @default(0)
+  createdAt     DateTime     @default(now())
+}
+
+model Note {
+  id         String   @id @default(cuid())
+  candidatId String
+  candidat   Candidat @relation(fields: [candidatId], references: [id], onDelete: Cascade)
+  type       String   @default("COMMENTAIRE") // COMMENTAIRE | NOTE_INTERNE | ECHANGE | DOCUMENT
+  texte      String
+  auteur     String
+  createdAt  DateTime @default(now())
+
+  @@index([candidatId])
+}
+
+// ─────────────────────────────  Présentations et registre anti-litiges  ─────────────────────────────
+
+model Presentation {
+  id             String           @id @default(cuid())
+  candidatId     String
+  candidat       Candidat         @relation(fields: [candidatId], references: [id], onDelete: Restrict)
+  missionId      String
+  mission        Mission          @relation(fields: [missionId], references: [id], onDelete: Restrict)
+  entrepriseId   String
+  entreprise     Entreprise       @relation(fields: [entrepriseId], references: [id], onDelete: Restrict)
+  consultant     String
+  destinataires  String[]
+  avis           String?          // avis du consultant
+  synthese       String?          // synthèse d'entretien
+  statut         String           @default("EN_ATTENTE") // EN_ATTENTE | RETENU | REFUSE | A_REVOIR
+  motifRefus     String?
+  feedback       String?
+  amelioration   String?
+  envoyeAt       DateTime         @default(now())
+  ouvertAt       DateTime?
+  consulteAt     DateTime?
+  cvTelechargeAt DateTime?
+  retourAt       DateTime?
+  journal        JournalRegistre[]
+
+  @@index([entrepriseId])
+  @@index([candidatId, entrepriseId])
+}
+
+// Registre : on ajoute des lignes, on ne modifie jamais, on ne supprime jamais
+// (voir prisma/protection-registre.sql pour le verrouillage au niveau de la base).
+model JournalRegistre {
+  id             String        @id @default(cuid())
+  presentationId String?
+  presentation   Presentation? @relation(fields: [presentationId], references: [id], onDelete: Restrict)
+  candidatId     String?
+  entrepriseId   String?
+  type           String        // ENVOI | OUVERTURE | CONSULTATION | TELECHARGEMENT_CV | REPONSE | DOUBLON_FORCE | ECHANGE
+  detail         String
+  acteur         String
+  createdAt      DateTime      @default(now())
+
+  @@index([presentationId])
+  @@index([entrepriseId])
+}
+
+// ─────────────────────────────  Facturation, relances, réglages  ─────────────────────────────
+
+model Facture {
+  id            String     @id @default(cuid())
+  missionId     String
+  mission       Mission    @relation(fields: [missionId], references: [id], onDelete: Restrict)
+  candidatId    String
+  candidat      Candidat   @relation(fields: [candidatId], references: [id], onDelete: Restrict)
+  entrepriseId  String
+  entreprise    Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Restrict)
+  salaireAnnuel Int
+  taux          Float
+  honoraires    Float
+  dateEmbauche  DateTime
+  finGarantie   DateTime
+  statut        String     @default("A_EMETTRE") // A_EMETTRE | ENVOYEE | PAYEE
+  createdAt     DateTime   @default(now())
+}
+
+model Relance {
+  id         String    @id @default(cuid())
+  candidatId String
+  candidat   Candidat  @relation(fields: [candidatId], references: [id], onDelete: Cascade)
+  regle      String    // J7 | J30 | J90
+  prevueLe   DateTime
+  envoyeeAt  DateTime?
+
+  @@unique([candidatId, regle])
+  @@index([prevueLe])
+}
+
+model Parametre {
+  cle    String @id
+  valeur String
+}
+
+model DemandeInscription {
+  id        String    @id @default(cuid())
+  societe   String
+  prenom    String
+  nom       String
+  email     String
+  telephone String?
+  message   String?
+  type      String    @default("INSCRIPTION") // INSCRIPTION | CONTACT
+  statut    String    @default("NOUVELLE")
+  createdAt DateTime  @default(now())
+  traiteeAt DateTime?
+
+  @@index([statut])
+}

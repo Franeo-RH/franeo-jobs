@@ -1,0 +1,238 @@
+@import "tailwindcss";
+
+/* Force Tailwind à lire toutes les pages et composants (certaines couleurs n'étaient pas générées) */
+@source "../app";
+@source "../components";
+@source "../lib";
+
+body {
+  background-color: #ffffff;
+  color: #171717;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* =========================================================
+   Barre de navigation
+   ========================================================= */
+.fr-nav { background: #000000; color: #ffffff; width: 100%; position: relative; z-index: 50; padding-top: env(safe-area-inset-top); }
+.fr-nav-barre {
+  display: grid; grid-template-columns: minmax(150px, 1fr) auto minmax(150px, 1fr);
+  align-items: center; gap: 16px; padding: 10px 24px;
+}
+.fr-nav-logo { flex-shrink: 0; display: flex; align-items: center; justify-self: start; }
+/* Onglets : une seule ligne, au centre */
+.fr-nav-liens { display: flex; align-items: stretch; justify-content: center; gap: 6px; flex-wrap: nowrap; }
+.fr-nav-lien {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-width: 78px; padding: 8px 10px; border-radius: 12px; white-space: nowrap;
+  background: rgba(255, 255, 255, 0.15); color: #ffffff; text-decoration: none;
+  font-size: 12px; font-weight: 600; transition: background 0.15s;
+}
+.fr-nav-lien:hover { background: rgba(124, 58, 237, 0.55); }
+.fr-nav-lien.fr-actif { background: #7c3aed; }
+.fr-nav-profil { justify-self: end; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; min-width: 0; }
+.fr-nav-prenom { color: #ffffff; font-size: 14px; font-weight: 700; }
+.fr-nav-petit { color: #d1d5db; font-size: 12px; text-decoration: none; white-space: nowrap; }
+.fr-nav-petit:hover { color: #c4b5fd; }
+.fr-nav-theme { background: none; border: none; color: #d1d5db; font-size: 12px; font-weight: 600; cursor: pointer; padding: 0; white-space: nowrap; }
+.fr-nav-theme:hover { color: #c4b5fd; }
+.fr-nav-deco { background: none; border: none; color: #f87171; font-size: 12px; font-weight: 600; cursor: pointer; padding: 0; }
+.fr-burger { display: none; background: none; border: none; color: #ffffff; cursor: pointer; padding: 8px; border-radius: 8px; }
+.fr-menu-mobile { display: none; }
+
+@media (max-width: 1100px) {
+  .fr-nav-liens, .fr-nav-profil { display: none; }
+  .fr-burger { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; justify-self: end; }
+  .fr-nav-barre { padding: 8px 16px; grid-template-columns: 1fr auto; }
+  .fr-menu-mobile { display: block; border-top: 1px solid #262626; padding: 12px 16px 16px; }
+  .fr-menu-grille { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .fr-menu-lien {
+    display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 12px;
+    border-radius: 12px; background: rgba(255, 255, 255, 0.12); color: #ffffff;
+    text-decoration: none; font-size: 15px; font-weight: 600;
+  }
+  .fr-menu-lien.fr-actif { background: #7c3aed; }
+  .fr-menu-installer {
+    display: flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; margin-top: 10px;
+    background: #ffffff; color: #111827; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer;
+  }
+  .fr-menu-pied { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 14px; color: #d1d5db; font-size: 14px; flex-wrap: wrap; }
+  .fr-menu-pied .fr-nav-deco, .fr-menu-pied .fr-nav-petit, .fr-menu-pied .fr-nav-theme { font-size: 14px; }
+}
+
+/* =========================================================
+   Indicateur de chargement (affiché dès le clic)
+   ========================================================= */
+.fr-chargement { position: relative; min-height: 60vh; }
+.fr-chargement-barre {
+  position: fixed; top: 0; left: 0; height: 3px; width: 40%; background: #7c3aed; z-index: 100;
+  animation: fr-barre 1s ease-in-out infinite;
+}
+.fr-chargement-centre { display: flex; align-items: center; justify-content: center; gap: 12px; padding-top: 25vh; color: #6b7280; font-size: 15px; }
+.fr-spinner {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 3px solid #ddd6fe; border-top-color: #7c3aed;
+  animation: fr-tourne 0.8s linear infinite;
+}
+@keyframes fr-tourne { to { transform: rotate(360deg); } }
+@keyframes fr-barre { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+
+/* =========================================================
+   Téléphone et petite tablette
+   ========================================================= */
+@media (max-width: 768px) {
+  /* Pas de défilement de gauche à droite */
+  html, body { overflow-x: hidden; }
+  main [class*="min-w-"] { min-width: 0 !important; }
+  main img { max-width: 100%; height: auto; }
+
+  /* Barre latérale + contenu : l'un sous l'autre */
+  div.flex:has(> aside.fr-sidebar) { flex-direction: column; }
+  /* Barre latérale : petits boutons sur plusieurs lignes, tous visibles */
+  aside.fr-sidebar {
+    width: 100% !important; min-height: 0 !important;
+    flex-direction: row !important; flex-wrap: wrap !important;
+    gap: 6px !important; padding: 10px 12px !important;
+    box-shadow: none !important; border-bottom: 1px solid #e5e7eb;
+  }
+  aside.fr-sidebar > p { display: none; }
+  aside.fr-sidebar > a {
+    padding: 6px 10px !important; font-size: 13px !important; border-radius: 999px !important;
+    border: 1px solid #e5e7eb; gap: 6px; min-height: 34px;
+  }
+
+  /* Contenu plus compact */
+  main { padding: 12px !important; min-width: 0; width: 100%; box-sizing: border-box; }
+  main .p-10 { padding: 16px !important; }
+  main .p-8 { padding: 16px !important; }
+  main .p-6 { padding: 14px !important; }
+  main .px-6 { padding-left: 14px !important; padding-right: 14px !important; }
+  main .mb-6 { margin-bottom: 14px !important; }
+  main h1, main .text-3xl { font-size: 1.4rem !important; line-height: 1.25 !important; }
+  main .text-4xl { font-size: 1.8rem !important; }
+  main .text-xl { font-size: 1.1rem !important; }
+
+  /* En-têtes avec boutons : passent à la ligne au lieu de déborder */
+  main .justify-between { flex-wrap: wrap; gap: 12px; }
+  main .flex.gap-2, main .flex.gap-3, main .flex.gap-4 { flex-wrap: wrap; }
+
+  /* Grilles : une colonne */
+  main .grid { grid-template-columns: minmax(0, 1fr) !important; }
+  main [class*="col-span"] { grid-column: auto !important; }
+  .fr-grille-2 { grid-template-columns: minmax(0, 1fr) !important; }
+  .fr-grille-tuiles { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+
+  /* Tableaux : liste de fiches, une fiche par ligne, chaque info avec son intitulé */
+  main table, main thead, main tbody, main tr, main th, main td { display: block; width: 100%; box-sizing: border-box; }
+  main table { white-space: normal; }
+  main thead { display: none; }
+  main tbody tr {
+    background: #ffffff; border: 1px solid #e5e7eb !important; border-radius: 12px;
+    padding: 10px 12px; margin-bottom: 10px;
+  }
+  main tbody td {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 5px 0 !important; border: none !important; text-align: right; font-size: 14px;
+    overflow-wrap: anywhere;
+  }
+  main tbody td::before {
+    content: attr(data-label); font-weight: 600; color: #6b7280; text-align: left; flex-shrink: 0; font-size: 13px;
+  }
+  main tbody td[data-label=""]::before, main tbody td:not([data-label])::before { content: none; }
+  main tbody td[data-label=""] { justify-content: flex-start; flex-wrap: wrap; padding-top: 8px !important; }
+  main tbody td:empty { display: none; }
+
+  /* Tableaux comparatifs (formules, packs) : on garde le tableau, on fait défiler de côté,
+     la première colonne (intitulés) reste visible */
+  main table.fr-tableau-fixe { display: table; width: max-content; min-width: 100%; border-collapse: separate; border-spacing: 0; }
+  main table.fr-tableau-fixe thead { display: table-header-group; }
+  main table.fr-tableau-fixe tbody { display: table-row-group; }
+  main table.fr-tableau-fixe tr { display: table-row; background: none; border: none !important; border-radius: 0; padding: 0; margin: 0; }
+  main table.fr-tableau-fixe th, main table.fr-tableau-fixe td {
+    display: table-cell; width: auto; text-align: center; font-size: 13px;
+    padding: 6px 8px !important; border-top: 1px solid #f3f4f6 !important; vertical-align: top;
+  }
+  main table.fr-tableau-fixe td::before { content: none !important; }
+  main table.fr-tableau-fixe tr > :first-child {
+    position: sticky; left: 0; z-index: 1; background: #ffffff; text-align: left;
+    min-width: 120px; max-width: 140px; box-shadow: 2px 0 4px rgba(0, 0, 0, 0.06);
+  }
+  main table.fr-tableau-fixe th span.text-2xl { font-size: 1.2rem !important; }
+
+  /* Onglets d'abonnement et puces de filtre : sur une ligne qui défile */
+  main [role="tablist"] { flex-wrap: nowrap !important; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  main [role="tablist"] > * { flex: 0 0 auto !important; white-space: nowrap; }
+
+  /* Chiffres clés : 2 par ligne */
+  main .grid[style*="minmax(160px"], main .grid[style*="minmax(170px"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  main .grid[style*="minmax(160px"] .text-2xl, main .grid[style*="minmax(170px"] .text-3xl { font-size: 1.25rem !important; }
+
+  /* Formulaires : pas de zoom automatique sur iPhone, champs pleine largeur */
+  main input, main select, main textarea { font-size: 16px !important; max-width: 100%; }
+  main form .flex-1 { min-width: 0; }
+
+  /* Boutons confortables au doigt */
+  main button, main a.rounded-lg { min-height: 40px; }
+}
+
+/* =========================================================
+   Hors connexion : consultation seule
+   ========================================================= */
+.fr-bandeau-hors-ligne {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 9998;
+  background: #111827; color: #ffffff; text-align: center; font-size: 14px; font-weight: 600;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+}
+/* Formulaires et boutons d'action grisés : rien ne peut être modifié sans réseau */
+.fr-hors-ligne main form,
+.fr-hors-ligne main button,
+.fr-hors-ligne main input,
+.fr-hors-ligne main select,
+.fr-hors-ligne main textarea {
+  pointer-events: none; opacity: 0.5;
+}
+
+/* =========================================================
+   Impression / PDF (Indicateurs RH) : seulement le contenu
+   ========================================================= */
+@media print {
+  .fr-nav, .fr-pas-imprimer, aside.fr-sidebar, .fr-bandeau-hors-ligne { display: none !important; }
+  body, .bg-gray-100 { background: #ffffff !important; }
+  .fr-indicateurs .shadow { box-shadow: none !important; border: 1px solid #e5e7eb; }
+  .fr-indicateurs section, .fr-indicateurs .rounded-xl { break-inside: avoid; }
+  @page { margin: 12mm; }
+}
+
+/* =========================================================
+   Thème sombre (bouton « 🌙 Thème sombre » au-dessus de Déconnexion)
+   La page est inversée en douceur ; la barre noire, les images et les graphiques
+   gardent leurs vraies couleurs.
+   ========================================================= */
+html[data-theme="dark"] { filter: invert(0.92) hue-rotate(180deg); background: #ffffff; color-scheme: light; }
+html[data-theme="dark"] .fr-nav { filter: invert(1) hue-rotate(180deg); }
+html[data-theme="dark"] main img:not(.invert),
+html[data-theme="dark"] main video,
+html[data-theme="dark"] main canvas,
+html[data-theme="dark"] main picture { filter: invert(1) hue-rotate(180deg); }
+html[data-theme="dark"] .fr-garder-couleurs { filter: invert(1) hue-rotate(180deg); }
+@media print { html[data-theme="dark"] { filter: none; } }
+
+/* =========================================================
+   Franeo Jobs : accueil public candidats (barre noire, même style que l'app)
+   ========================================================= */
+.fr-public-barre { background: #000000; color: #ffffff; padding: 10px 24px; padding-top: calc(10px + env(safe-area-inset-top)); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.fr-public-barre a { color: #d1d5db; text-decoration: none; font-size: 14px; font-weight: 600; }
+.fr-public-barre a:hover { color: #c4b5fd; }
+.fr-bouton-violet { background: #7c3aed; color: #ffffff; border-radius: 8px; padding: 10px 20px; font-weight: 700; display: inline-block; text-decoration: none; transition: background 0.15s; border: none; cursor: pointer; }
+.fr-bouton-violet:hover { background: #6d28d9; }
+.fr-bouton-violet:disabled { opacity: 0.6; cursor: default; }
+.fr-pastille { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+
+/* Kanban du pipeline : défilement horizontal, une colonne par étape */
+.fr-kanban { display: grid; grid-auto-flow: column; grid-auto-columns: 250px; gap: 12px; overflow-x: auto; padding-bottom: 12px; align-items: start; }
+.fr-colonne { background: #f3f4f6; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-height: 120px; }
+.fr-carte-kanban { background: #ffffff; border-radius: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); padding: 10px 12px; }
+
+/* Jauges de score */
+.fr-jauge { height: 8px; border-radius: 4px; background: #e5e7eb; overflow: hidden; }
+.fr-jauge > span { display: block; height: 100%; background: linear-gradient(90deg, #6d28d9, #a78bfa); }
