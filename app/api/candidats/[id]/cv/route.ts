@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if (!contenu) return NextResponse.json({ erreur: "CV introuvable dans le stockage." }, { status: 404 });
   const extension = (candidat.cvNom || "").split(".").pop() || "pdf";
   const nomFichier = `CV-${candidat.prenom}-${candidat.nom}.${extension}`.replace(/[^\w.\-]+/g, "_");
-  return new NextResponse(contenu, {
+  return new NextResponse(new Uint8Array(contenu), {
     headers: {
       "Content-Type": candidat.cvType || "application/octet-stream",
       "Content-Disposition": `attachment; filename="${nomFichier}"`,
