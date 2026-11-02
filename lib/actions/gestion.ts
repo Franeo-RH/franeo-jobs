@@ -217,7 +217,7 @@ export async function verifierR2() {
   await exigerAdmin();
   const { testerR2 } = await import("@/lib/stockage");
   const r = await testerR2();
-  redirect(r === "OK" ? "/admin/parametres/stockage?ok=Connexion à Cloudflare R2 réussie ✅" : vers("/admin/parametres/stockage", r));
+  redirect(r === "OK" ? "/admin/parametres/stockage?ok=Connexion au stockage réussie ✅" : vers("/admin/parametres/stockage", r));
 }
 
 export async function migrerCvVersR2() {
@@ -225,5 +225,5 @@ export async function migrerCvVersR2() {
   const { migrerVersR2 } = await import("@/lib/stockage");
   const { deplaces, restants } = await migrerVersR2();
   revalidatePath("/admin/parametres/stockage");
-  redirect(`/admin/parametres/stockage?ok=${encodeURIComponent(`${deplaces} CV déplacé(s) vers R2. ${restants ? `Il en reste ${restants} : relancez.` : "Terminé ✅"}`)}`);
+  redirect(`/admin/parametres/stockage?ok=${encodeURIComponent(`${deplaces} CV déplacé(s) vers le stockage. ${restants ? `Il en reste ${restants} : relancez.` : "Terminé ✅"}`)}`);
 }

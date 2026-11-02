@@ -59,13 +59,15 @@ Dans Neon → **SQL Editor**, collez le contenu du fichier `prisma/protection-re
 ### 7. E-mails (Resend)
 Créez un compte sur resend.com, vérifiez le domaine franeo-rh.com, créez une clé API et renseignez `RESEND_API_KEY` et `MAIL_FROM`. Sans clé, tout fonctionne mais aucun e-mail ne part (confirmations de candidature, présentations aux clients, relances, alertes).
 
-### 8. Stockage des CV : Cloudflare R2 (10 Go gratuits)
-Sans réglage, les CV sont rangés dans la base Neon (offre gratuite limitée à 0,5 Go, soit environ 1 000 à 2 000 CV). Pour aller plus loin gratuitement :
-1. Créez un compte sur dash.cloudflare.com (carte bancaire demandée pour activer R2, mais rien n'est facturé sous 10 Go).
-2. Menu **R2 Object Storage** → **Create bucket** → nom `franeo-jobs-cv` (laissez-le privé).
-3. **Manage R2 API Tokens** → **Create API token** → permission **Object Read & Write**, limitée au bucket `franeo-jobs-cv`.
-4. Copiez l'**Account ID**, l'**Access Key ID** et la **Secret Access Key** dans `.env` (et dans Vercel) : `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET="franeo-jobs-cv"`.
-5. Redémarrez l'application : les nouveaux CV vont dans R2, les anciens restent lisibles dans la base.
+### 8. Stockage des CV : OVHcloud (données en France)
+Sans réglage, les CV sont rangés dans la base Neon (offre gratuite limitée à 0,5 Go). Pour les ranger chez OVHcloud (quelques centimes par mois) :
+1. ovhcloud.com → espace client → **Public Cloud** → créer un projet.
+2. **Object Storage** → **Créer un conteneur** → **Standard (API S3)**, région **Gravelines (GRA)** ou **Paris**, nom `franeo-jobs-cv`, accès **privé**.
+3. **Utilisateurs S3** → créer un utilisateur (rôle **ObjectStore operator**) → noter la clé d'accès et la clé secrète.
+4. Renseigner dans `.env` et dans Vercel : `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET`.
+5. Admin → Paramètres → **Stockage des CV** → **Tester la connexion**, puis déplacer les CV existants.
+
+Le code fonctionne aussi avec tout autre hébergeur compatible S3 (Scaleway, Cloudflare R2…) en changeant seulement ces variables.
 
 ## Variables d'environnement
 
@@ -77,7 +79,7 @@ Sans réglage, les CV sont rangés dans la base Neon (offre gratuite limitée à
 | `MAIL_FROM` | Expéditeur, ex. `Franeo Jobs <jobs@franeo-rh.com>` |
 | `MAIL_ADMIN` | Où arrivent les alertes (nouvelles candidatures, retours clients) |
 | `CRON_SECRET` | Mot de passe long et aléatoire qui protège les tâches automatiques |
-| `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` | Stockage des CV dans Cloudflare R2 (facultatif, 10 Go gratuits) |
+| `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET` | Stockage des CV chez OVHcloud ou autre hébergeur S3 (facultatif) |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Premier compte admin (utilisés par `npx prisma db seed`) |
 
 ## Premiers pas conseillés
