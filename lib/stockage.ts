@@ -22,7 +22,7 @@ function r2() {
 
 /** Enregistre un CV et renvoie les champs à écrire sur la fiche candidat */
 export async function donneesCv(fichier: { nom: string; type: string; data: Uint8Array }) {
-  if (!r2Actif()) return { cvNom: fichier.nom, cvType: fichier.type, cvData: fichier.data, cvCle: null };
+  if (!r2Actif()) return { cvNom: fichier.nom, cvType: fichier.type, cvData: Buffer.from(fichier.data), cvCle: null };
   const extension = fichier.nom.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "pdf";
   const cle = `cv/${randomUUID()}.${extension}`;
   await r2().send(new PutObjectCommand({ Bucket: BUCKET, Key: cle, Body: fichier.data, ContentType: fichier.type }));
