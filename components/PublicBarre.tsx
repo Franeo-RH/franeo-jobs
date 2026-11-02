@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import Coquille from "@/components/Coquille";
+import { getSession } from "@/lib/session";
 
 /** Barre noire et pied de page des pages ouvertes à tous (candidats, sans compte) */
 export function PublicBarre() {
@@ -29,12 +31,9 @@ export function PublicPied() {
   );
 }
 
-export function PagePublique({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      <PublicBarre />
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-8">{children}</main>
-      <PublicPied />
-    </div>
-  );
+/** Pages ouvertes à tous : même présentation que l'appli (barre noire, barre latérale, cartes) */
+export async function PagePublique({ children }: { children: React.ReactNode }) {
+  const s = await getSession();
+  const session = s?.role === "CANDIDAT" ? { role: "CANDIDAT", prenom: s.prenom } : { role: "PUBLIC", prenom: "" };
+  return <Coquille session={session} pied={<PublicPied />}>{children}</Coquille>;
 }

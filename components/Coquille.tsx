@@ -2,14 +2,14 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 
 /** Cadre commun des pages admin et client : barre noire, barre latérale, contenu */
-export default function Coquille({ session, children }: { session: { role: string; prenom: string }; children: React.ReactNode }) {
-  const role = session.role === "ADMIN" ? "ADMIN" : "CLIENT";
+export default function Coquille({ session, children, pied }: { session: { role: string; prenom: string }; children: React.ReactNode; pied?: React.ReactNode }) {
+  const role = (["ADMIN", "CLIENT", "CANDIDAT", "PUBLIC"].includes(session.role) ? session.role : "CLIENT") as "ADMIN" | "CLIENT" | "CANDIDAT" | "PUBLIC";
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar role={role} prenom={session.prenom} />
       <div className="flex">
         <Sidebar role={role} />
-        <main className="flex-1 p-10 min-w-0">{children}</main>
+        <main className="flex-1 p-10 min-w-0">{children}{pied}</main>
       </div>
     </div>
   );

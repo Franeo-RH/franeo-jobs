@@ -3,11 +3,29 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+export type Role = "ADMIN" | "CLIENT" | "CANDIDAT" | "PUBLIC";
 type Item = { href: string; label: string; badge?: number; aussi?: string[] };
 
 /** Liste des liens de la barre latérale selon l'onglet ouvert */
-function rubrique(pathname: string, role: "ADMIN" | "CLIENT"): { titre: string; items: Item[] } | null {
+function rubrique(pathname: string, role: Role): { titre: string; items: Item[] } | null {
   const dans = (...mots: string[]) => mots.some((m) => pathname.includes(m));
+
+  if (role === "PUBLIC") {
+    return { titre: "Franeo Jobs", items: [
+      { href: "/offres", label: "💼 Offres d'emploi" },
+      { href: "/candidature-spontanee", label: "📄 Déposer mon CV" },
+      { href: "/espace-candidat", label: "👤 Mon espace candidat" },
+      { href: "/confidentialite", label: "🛡️ Données personnelles" },
+    ] };
+  }
+  if (role === "CANDIDAT") {
+    return { titre: "Mon espace", items: [
+      { href: "/candidat", label: "📍 Mon suivi" },
+      { href: "/candidat/profil", label: "👤 Mes informations" },
+      { href: "/offres", label: "💼 Offres d'emploi" },
+      { href: "/candidature-spontanee", label: "📄 Déposer mon CV" },
+    ] };
+  }
 
   if (role === "ADMIN") {
     if (dans("/admin/clients")) {
@@ -59,7 +77,7 @@ function rubrique(pathname: string, role: "ADMIN" | "CLIENT"): { titre: string; 
   return null;
 }
 
-export default function Sidebar({ role }: { role: "ADMIN" | "CLIENT" }) {
+export default function Sidebar({ role }: { role: Role }) {
   const pathname = usePathname();
   const r = rubrique(pathname, role);
   if (!r) return null;

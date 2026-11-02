@@ -12,7 +12,7 @@ import { viderCacheHorsLigne } from "@/components/EnregistrerSW";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://franeo-rh.com";
 
 interface NavbarProps {
-  role: "ADMIN" | "CLIENT";
+  role: "ADMIN" | "CLIENT" | "CANDIDAT" | "PUBLIC";
   prenom: string;
 }
 
@@ -54,7 +54,7 @@ export default function Navbar({ role, prenom }: NavbarProps) {
     setChargement(true);
     await viderCacheHorsLigne(); // les pages gardées pour le hors-ligne ne restent pas sur l'appareil
     await fetch("/api/logout", { method: "POST" });
-    router.push("/login");
+    router.push(role === "CANDIDAT" ? "/espace-candidat" : "/login");
     router.refresh();
   }
 
@@ -68,6 +68,20 @@ export default function Navbar({ role, prenom }: NavbarProps) {
         { href: "/admin/presentations", label: "Présentations", icon: "/HELPDESK-LOGO.png" },
         { href: "/admin/facturation", label: "Facturation", icon: "/PAIE-LOGO.png" },
         { href: "/admin/parametres", label: "Paramètres", icon: "/FAQ-LOGO.png" },
+      ]
+    : role === "PUBLIC"
+    ? [
+        { href: "/offres", label: "Offres", icon: "/COMMUNICATION-LOGO.png" },
+        { href: "/candidature-spontanee", label: "Déposer mon CV", icon: "/ACTUALITE-LOGO.png" },
+        { href: "/espace-candidat", label: "Espace candidat", icon: "/SALARIE-LOGO.png" },
+        { href: "/login", label: "Espace client", icon: "/ENTREPRISE-LOGO.png" },
+      ]
+    : role === "CANDIDAT"
+    ? [
+        { href: "/candidat", label: "Mon suivi", icon: "/DASHBOARD-LOGO.png" },
+        { href: "/candidat/profil", label: "Mes infos", icon: "/SALARIE-LOGO.png" },
+        { href: "/offres", label: "Offres", icon: "/COMMUNICATION-LOGO.png" },
+        { href: "/candidature-spontanee", label: "Déposer mon CV", icon: "/ACTUALITE-LOGO.png" },
       ]
     : [
         { href: "/client/dashboard", label: "Dashboard", icon: "/DASHBOARD-LOGO.png" },
@@ -87,19 +101,22 @@ export default function Navbar({ role, prenom }: NavbarProps) {
   const profil = (
     <>
       {role === "CLIENT" && <Link href="/client/profil" className="fr-nav-petit">🔒 Mot de passe</Link>}
-      <Link href="/offres" className="fr-nav-petit">💼 Voir les offres publiques</Link>
+      {(role === "ADMIN" || role === "CLIENT") && <Link href="/offres" className="fr-nav-petit">💼 Voir les offres publiques</Link>}
+      {role === "PUBLIC" && <Link href="/espace-candidat" className="fr-nav-petit">🔑 Se connecter</Link>}
       <a href={SITE_URL} target="_blank" rel="noopener noreferrer" className="fr-nav-petit">🌐 Site Franeo ↗</a>
       <BoutonTheme className="fr-nav-theme" />
-      <button onClick={handleLogout} disabled={chargement} className="fr-nav-deco">
-        {chargement ? "..." : "Déconnexion"}
-      </button>
+      {role !== "PUBLIC" && (
+        <button onClick={handleLogout} disabled={chargement} className="fr-nav-deco">
+          {chargement ? "..." : "Déconnexion"}
+        </button>
+      )}
     </>
   );
 
   return (
     <nav className="fr-nav">
       <div className="fr-nav-barre">
-        <Link href={role === "ADMIN" ? "/admin/dashboard" : "/client/dashboard"} className="fr-nav-logo" aria-label="Accueil Franeo Jobs">
+        <Link href={{ ADMIN: "/admin/dashboard", CLIENT: "/client/dashboard", CANDIDAT: "/candidat", PUBLIC: "/offres" }[role]} className="fr-nav-logo" aria-label="Accueil Franeo Jobs">
           <Image src="/FRANEO-Logo-Violet.png" alt="Franeo Jobs" width={52} height={41} style={{ objectFit: "contain" }} priority />
           <span style={{ color: "#c4b5fd", fontWeight: 800, fontSize: "13px", letterSpacing: "0.12em", marginLeft: "10px" }}>JOBS</span>
         </Link>
@@ -115,7 +132,7 @@ export default function Navbar({ role, prenom }: NavbarProps) {
         </div>
 
         <div className="fr-nav-profil">
-          <span className="fr-nav-prenom">{prenom || " "}</span>
+          <span className="fr-nav-prenom">{role === "PUBLIC" ? "Bienvenue" : prenom || " "}</span>
           {profil}
         </div>
 
@@ -157,7 +174,7 @@ export default function Navbar({ role, prenom }: NavbarProps) {
           </div>
           <InstallerApp className="fr-menu-installer" />
           <div className="fr-menu-pied">
-            <span>👤 {prenom}</span>
+            <span>👤 {role === "PUBLIC" ? "Visiteur" : prenom}</span>
             <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>{profil}</div>
           </div>
         </div>

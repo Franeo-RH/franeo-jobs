@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { CATEGORIES, CONTRATS } from "@/lib/constantes";
 import { PagePublique } from "@/components/PublicBarre";
+import { EnTete } from "@/components/Coquille";
 
 export const metadata = { title: "Offres d'emploi — Franeo Jobs" };
 export const dynamic = "force-dynamic";
@@ -30,15 +31,13 @@ export default async function Offres({ searchParams }: { searchParams: SP }) {
 
   return (
     <PagePublique>
-      <div className="bg-white rounded-xl shadow p-8 mb-6">
-        <h1 className="text-3xl font-bold">Trouvez votre prochain poste</h1>
-        <p className="text-gray-500 mt-2 max-w-2xl">
-          FRANEO RH recrute pour des entreprises de toute la région. Postulez en quelques minutes, sans créer de compte, ou déposez simplement votre CV : nous vous recontactons dès qu&apos;une mission vous correspond.
-        </p>
-        <div className="mt-5 flex gap-3 flex-wrap">
-          <Link href={`/candidature-spontanee${source ? `?source=${encodeURIComponent(source)}` : ""}`} className="fr-bouton-violet">📄 Déposer mon CV</Link>
-        </div>
-      </div>
+      <EnTete
+        titre="Trouvez votre prochain poste"
+        sous="FRANEO RH recrute pour des entreprises de toute la région. Consultez les offres librement, puis postulez en quelques clics depuis votre espace candidat, ou déposez simplement votre CV : nous vous recontactons dès qu'une mission vous correspond."
+      >
+        <Link href={`/candidature-spontanee${source ? `?source=${encodeURIComponent(source)}` : ""}`} className="bg-violet-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-violet-700 whitespace-nowrap">📄 Déposer mon CV</Link>
+        <Link href="/espace-candidat" className="bg-gray-100 text-gray-800 px-5 py-2 rounded-lg font-semibold hover:bg-gray-200 whitespace-nowrap">👤 Mon espace candidat</Link>
+      </EnTete>
 
       <form method="get" className="bg-white rounded-xl shadow p-6 mb-6 flex gap-3 flex-wrap items-end">
         {source && <input type="hidden" name="source" value={source} />}
@@ -48,14 +47,14 @@ export default async function Offres({ searchParams }: { searchParams: SP }) {
         </div>
         <div>
           <label htmlFor="metier" className="block text-sm font-semibold mb-1">Métier</label>
-          <select id="metier" name="metier" defaultValue={metier} className="border rounded-lg px-4 py-3 text-black bg-white">
+          <select id="metier" name="metier" defaultValue={metier} className="w-full border rounded-lg px-4 py-3 text-black bg-white">
             <option value="">Tous</option>
             {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
           </select>
         </div>
         <div>
           <label htmlFor="contrat" className="block text-sm font-semibold mb-1">Contrat</label>
-          <select id="contrat" name="contrat" defaultValue={contrat} className="border rounded-lg px-4 py-3 text-black bg-white">
+          <select id="contrat" name="contrat" defaultValue={contrat} className="w-full border rounded-lg px-4 py-3 text-black bg-white">
             <option value="">Tous</option>
             {CONTRATS.map((c) => <option key={c}>{c}</option>)}
           </select>
